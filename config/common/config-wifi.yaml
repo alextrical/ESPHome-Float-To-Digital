@@ -1,0 +1,9 @@
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  fast_connect: True                    # My IOT SSID is hidden. This is required to connect to it. Also- speeds up connection time.
+  reboot_timeout: 15min                 # Reboot after 15 minutes, if we are unable to connect to wifi
+  
+  ap:                                   # Fallback AP is enabled, because some of my ESP devices are inside of my wall. IF- something happened, This helps a lot to fix the issue.
+    ssid: ${friendly_name} + " Fallback"
+    password: !secret fallback_pass

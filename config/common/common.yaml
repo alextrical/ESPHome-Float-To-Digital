@@ -1,0 +1,8 @@
+<<: !include config-wifi.yaml
+<<: !include config-time.yaml
+<<: !include config-api.yaml
+<<: !include config-ota.yaml
+# <<: !include config-mqtt.yaml
+
+# Enable logging
+logger:

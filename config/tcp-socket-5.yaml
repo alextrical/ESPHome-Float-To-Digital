@@ -1,0 +1,53 @@
+# Basic Config
+substitutions:
+  lowercase_name: tcp-socket-5
+  friendly_name: TCP Socket 5
+  static_ip: 10.10.1.75
+
+esp8266:
+  board: esp01_1m
+  framework:
+    version: recommended
+  restore_from_flash: true
+
+captive_portal:
+
+web_server:
+  version: 3
+
+esphome:
+  name: ${lowercase_name}
+  friendly_name: ${friendly_name}
+
+packages:
+  device_base: !include common/common.yaml
+  static_ip: !include common/config-wifi-static.yaml
+  no_powersave: !include common/config-wifi-no-powersave.yaml
+  sensor_uptime: !include common/sensor-uptime.yaml
+  sensor_signal: !include common/sensor-wifi-signal.yaml
+
+# Device Specific Config
+status_led:
+  pin:
+    number: GPIO4
+    inverted: True
+    
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO13
+      mode: INPUT_PULLUP
+      inverted: True
+    name: "Button"
+    on_press:
+      - switch.toggle: "relay"
+    internal: true
+
+  # - platform: status
+  #   name: "Status"
+
+switch:
+  - platform: gpio
+    name: "Relay"
+    pin: GPIO5
+    id: "relay"

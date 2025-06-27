@@ -1,0 +1,8 @@
+wifi:
+  domain: !secret domain
+  manual_ip:
+    static_ip: ${static_ip}            # I define each device with its own static IP.
+    gateway: !secret gateway
+    subnet: !secret subnet
+    # Note- NO DNS is configured. These devices don't need DNS. I don't allow DNS on my IOT subnet.
+    # Reason being- DNS queries can be used to send data back to the internet.

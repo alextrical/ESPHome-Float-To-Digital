@@ -1,0 +1,2 @@
+wifi:
+  power_save_mode: none                 # Don't enable power-savings mode.

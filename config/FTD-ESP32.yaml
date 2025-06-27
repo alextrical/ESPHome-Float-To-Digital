@@ -1,0 +1,158 @@
+esp32:
+  board: esp32dev
+
+esphome:
+  name: esphome-test
+  
+logger:
+  level: DEBUG
+  baud_rate: 9600
+
+# packages:
+#   device_base: !include common/common.yaml
+#   # relay_dimmer: !include devices/relay_dimmer.yaml
+#   # static_ip: !include common/config-wifi-static.yaml
+#   # no_powersave: !include common/config-wifi-no-powersave.yaml
+#   sensor_uptime: !include common/sensor-uptime.yaml
+#   # sensor_signal: !include common/sensor-wifi-signal.yaml
+
+
+globals:
+ - id: led_offset
+   type: int
+   restore_value: no
+   initial_value: '0'
+
+light:
+  - platform: monochromatic
+    output: relay_dimmer
+    name: light
+    gamma_correct: 1
+    default_transition_length: 0s
+    id: dimmer
+
+output:
+  - platform: template
+    id: relay_dimmer
+    type: float
+    write_action:
+      # Wear levelling counter update
+      - if:
+          condition:
+            lambda: return (state == 0 || state == 1);
+          then:
+            lambda: |-
+              id(led_offset) = (id(led_offset) + 1) % 6;
+              ESP_LOGI("counter", "Counter value: %d", id(led_offset));
+
+
+      # LED control
+      - lambda: |-
+          // Use esphome::output::BinaryOutput for on/off LEDs
+          auto leds = std::array<esphome::output::BinaryOutput*, 12>{
+            id(led_1), id(led_2), id(led_3), id(led_4), id(led_5), id(led_6), id(led_1), id(led_2), id(led_3), id(led_4), id(led_5), id(led_6)
+          };
+          
+          // Rest of your LED control code remains unchanged
+          float thresholds[6] = {0.0, 0.22, 0.42, 0.62, 0.82, 1.0};
+          for (int i = 0; i < 5; i++) {
+            if (state > thresholds[i])
+              leds[i+id(led_offset)]->turn_on();
+            else
+              leds[i+id(led_offset)]->turn_off();
+          }
+          if (state == 1)
+            leds[5+id(led_offset)]->turn_on();
+          else
+            leds[5+id(led_offset)]->turn_off();
+
+  - platform: gpio
+    pin: GPIO23
+    id: led_1
+  - platform: gpio
+    pin: GPIO22
+    id: led_2
+  - platform: gpio
+    pin: GPIO21
+    id: led_3
+  - platform: gpio
+    pin: GPIO19
+    id: led_4
+  - platform: gpio
+    pin: GPIO18
+    id: led_5
+  - platform: gpio
+    pin: GPIO17
+    id: led_6
+
+
+
+
+binary_sensor:
+  - platform: gpio
+    pin: 
+      number: GPIO14
+      mode:
+        input: true
+        pullup: true
+    id: btn_increase
+    name: "Increase Brightness Button"
+    on_press:
+      then:
+        - light.dim_relative:
+            id: dimmer
+            relative_brightness: 16.667%   # Increase by 10%
+            # transition_length: 0.1s
+    # on_multi_click:
+    #   - timing:
+    #       - ON for at least 1s
+    #     then:
+    #       - while:
+    #           condition:
+    #             binary_sensor.is_on: btn_increase
+    #           then:
+    #             - light.dim_relative:
+    #                 id: dimmer
+    #                 relative_brightness: 5%
+    #                 transition_length: 0.1s
+    #             - delay: 0.1s
+
+  - platform: gpio
+    pin: 
+      number: GPIO13
+      mode:
+        input: true
+        pullup: true
+    id: btn_decrease
+    name: "Decrease Brightness Button"
+    on_press:
+      then:
+        - light.dim_relative:
+            id: dimmer
+            relative_brightness: -16.667%  # Decrease by 10%
+            # transition_length: 0.1s
+    # on_multi_click:
+    #   - timing:
+    #       - ON for at least 1s
+    #     then:
+    #       - while:
+    #           condition:
+    #             binary_sensor.is_on: btn_decrease
+    #           then:
+    #             - light.dim_relative:
+    #                 id: dimmer
+    #                 relative_brightness: -5%
+    #                 transition_length: 0.1s
+    #             - delay: 0.1s
+
+  - platform: gpio
+    pin: 
+      number: GPIO12
+      mode:
+        input: true
+        pullup: true
+    id: btn_toggle
+    name: "On/Off Button"
+    on_press:
+      then:
+        - light.toggle: dimmer

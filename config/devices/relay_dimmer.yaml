@@ -1,0 +1,157 @@
+light:
+  - platform: monochromatic
+    output: relay_dimmer_1
+    name: light
+    gamma_correct: 1
+    default_transition_length: 0s
+    id: dimmer
+
+esphome:
+  name: ${lowercase_name}
+  friendly_name: ${friendly_name}
+  # includes:
+  #   - devices/relay_dimmer.h
+  on_shutdown:
+    then:
+      - light.turn_off: dimmer
+
+globals:
+ - id: lastSwitchTime
+   type: unsigned long
+   restore_value: no
+   initial_value: millis()
+ - id: dimmer_lvl
+   # https://esphome.io/guides/automations.html#bonus-2-global-variables
+   type: float
+   restore_value: no
+   initial_value: '1.0'
+
+# external_components:
+#   - source: my_components
+
+# output:
+#   - platform: relay_dimmer
+#     id: relay_dimmer_1
+# # output:
+# #   - platform: custom
+# #     type: float
+# #     lambda: |-
+# #       auto relay_dimmer_output = new MyCustomFloatOutput();
+# #       App.register_component(relay_dimmer_output);
+# #       return {relay_dimmer_output};
+# #     outputs:
+# #       id: relay_dimmer
+
+output:
+  - platform: template
+    id: relay_dimmer_1
+    type: float
+    write_action:
+      # Wear levelling counter update
+      - if:
+          condition:
+            lambda: return (state == 0 || state == 1);
+          then:
+            lambda: |-
+              id(led_offset) = (id(led_offset) + 1) % 6;
+              ESP_LOGI("counter", "Counter value: %d", id(led_offset));
+
+
+      # LED control
+      - lambda: |-
+          // Use esphome::output::BinaryOutput for on/off LEDs
+          auto leds = std::array<esphome::output::BinaryOutput*, 12>{
+            id(led_1), id(led_2), id(led_3), id(led_4), id(led_5), id(led_6), id(led_1), id(led_2), id(led_3), id(led_4), id(led_5), id(led_6)
+          };
+          
+          // Rest of your LED control code remains unchanged
+          float thresholds[6] = {0.0, 0.22, 0.42, 0.62, 0.82, 1.0};
+          for (int i = 0; i < 5; i++) {
+            if (state > thresholds[i])
+              leds[i+id(led_offset)]->turn_on();
+            else
+              leds[i+id(led_offset)]->turn_off();
+          }
+          if (state == 1)
+            leds[5+id(led_offset)]->turn_on();
+          else
+            leds[5+id(led_offset)]->turn_off();
+
+  - platform: gpio
+    pin: GPIO14
+    id: led_1
+  - platform: gpio
+    pin: GPIO15
+    id: led_2
+  - platform: gpio
+    pin: GPIO12
+    id: led_3
+  - platform: gpio
+    pin: GPIO10
+    id: led_4
+  - platform: gpio
+    pin: GPIO13
+    id: led_5
+  - platform: gpio
+    pin: GPIO16
+    id: led_6
+
+binary_sensor:
+  - platform: gpio
+    pin: 
+      number: 4
+      mode: input
+    id: spst_switch
+    # internal: true
+    filters:
+      - delayed_on_off: 100ms
+      #- delayed_off: 100ms
+    # on_press:
+    #   then:
+    #     - logger.log: "GPIO4 1"
+    # on_release:
+    #   then:
+    #     - logger.log: "GPIO4 0"
+    on_multi_click:
+    - timing:
+        - ON for at most 600ms
+      then:
+        - script.execute: toggle_script
+    - timing:
+        - OFF for at most 600ms
+      then:
+        - script.execute: toggle_script
+    - timing:
+        - OFF for at least 600ms
+      then:
+        - script.execute: switch_script
+    - timing:
+        - ON for at least 600ms
+      then:
+        - script.execute: switch_script
+        
+
+script:
+  - id: toggle_script
+    then:
+      - lambda: 'id(lastSwitchTime) = millis();'
+      - if:
+          condition:
+            lambda: 'return id(dimmer)->remote_values.get_brightness() > 0.84;'
+          then:
+            - light.turn_on:
+                id: dimmer
+                brightness: 0.16
+          else:
+            - light.dim_relative:
+                id: dimmer
+                relative_brightness: 0.16
+      # - logger.log: "Toggle"
+  - id: switch_script
+    then:
+      - if:
+          condition:
+            lambda: 'return (millis() - id(lastSwitchTime)) > 700;'
+          then:
+            # - logger.log: "Switch"
+            - light.toggle: dimmer

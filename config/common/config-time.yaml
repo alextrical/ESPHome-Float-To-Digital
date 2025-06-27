@@ -1,0 +1,8 @@
+# Enable Time Component
+time:
+#  - platform: homeassistant
+#    id: homeassistant_time
+#    timezone: America/Chicago
+  - platform: sntp
+    servers: !secret ntp_server_ip
+    timezone: !secret timezone

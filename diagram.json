@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "author": "Ben Jackson",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    {
+      "type": "wokwi-led-bar-graph",
+      "id": "bargraph1",
+      "top": 62.4,
+      "left": 158.4,
+      "attrs": { "color": "white" }
+    },
+    {
+      "type": "wokwi-pushbutton-6mm",
+      "id": "btn1",
+      "top": 113,
+      "left": -67.2,
+      "attrs": { "color": "green", "xray": "1" }
+    },
+    {
+      "type": "wokwi-pushbutton-6mm",
+      "id": "btn2",
+      "top": 141.8,
+      "left": -67.2,
+      "attrs": { "color": "green", "xray": "1" }
+    },
+    {
+      "type": "wokwi-pushbutton-6mm",
+      "id": "btn3",
+      "top": 170.6,
+      "left": -67.2,
+      "attrs": { "color": "green", "xray": "1" }
+    }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "bargraph1:C1", "esp:GND.2", "black", [ "v0" ] ],
+    [ "bargraph1:C1", "bargraph1:C2", "black", [ "v0" ] ],
+    [ "bargraph1:C2", "bargraph1:C3", "black", [ "h0" ] ],
+    [ "bargraph1:C3", "bargraph1:C4", "black", [ "h0" ] ],
+    [ "bargraph1:C4", "bargraph1:C5", "black", [ "h0" ] ],
+    [ "bargraph1:C5", "bargraph1:C6", "black", [ "h0" ] ],
+    [ "bargraph1:C6", "bargraph1:C7", "black", [ "h0" ] ],
+    [ "bargraph1:C7", "bargraph1:C8", "black", [ "h0" ] ],
+    [ "bargraph1:C8", "bargraph1:C9", "black", [ "h0" ] ],
+    [ "bargraph1:C9", "bargraph1:C10", "black", [ "h0" ] ],
+    [ "bargraph1:A1", "esp:23", "green", [ "h-38.4", "v-28.8" ] ],
+    [ "bargraph1:A2", "esp:22", "green", [ "h-48", "v-28.8" ] ],
+    [ "esp:21", "bargraph1:A3", "green", [ "h14.44", "v9.6" ] ],
+    [ "esp:19", "bargraph1:A4", "green", [ "h14.44", "v-28.8" ] ],
+    [ "esp:18", "bargraph1:A5", "green", [ "h24.04", "v-28.8" ] ],
+    [ "esp:17", "bargraph1:A6", "green", [ "h14.44", "v-9.59" ] ],
+    [ "esp:16", "bargraph1:A7", "green", [ "h24.04", "v-9.59" ] ],
+    [ "esp:4", "bargraph1:A8", "green", [ "h33.64", "v-9.59" ] ],
+    [ "esp:2", "bargraph1:A9", "green", [ "h43.24", "v-19.19" ] ],
+    [ "btn1:1.r", "esp:14", "green", [ "v0", "h20", "v9.6" ] ],
+    [ "btn2:1.r", "esp:12", "green", [ "v0" ] ],
+    [ "btn3:1.r", "esp:13", "green", [ "v0", "h29.6", "v-9.6" ] ],
+    [ "esp:GND.1", "btn2:2.r", "black", [ "h-33.41", "v9.6" ] ],
+    [ "btn1:2.r", "btn2:2.r", "green", [ "h10.4", "v0.4" ] ],
+    [ "btn2:2.r", "btn3:2.r", "green", [ "h10.4", "v29.2" ] ]
+  ],
+  "dependencies": {}
+}
